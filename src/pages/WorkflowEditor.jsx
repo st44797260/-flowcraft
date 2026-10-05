@@ -199,6 +199,11 @@ function EditorInner() {
           defaultEdgeOptions={{ type: 'flow' }}
           connectionLineStyle={{ stroke: '#00D4FF', strokeWidth: 2 }}
           onPaneClick={() => setMenuOpen(false)}
+          /* 平移：中键/右键拖拽，或按住空格+左键拖拽 */
+          panOnDrag={[1, 2]}
+          panActivationKeyCode="Space"
+          /* 选中元素可用 Backspace 或 Delete 删除 */
+          deleteKeyCode={['Backspace', 'Delete']}
         >
           {/* 点状网格：白色 5% 透明度 */}
           <Background

@@ -47,7 +47,7 @@ export default function BaseNode({ id, data, selected, config }) {
 
   return (
     <div
-      className="relative w-56 rounded-xl border bg-white/5 px-3.5 py-3 transition-shadow"
+      className="relative w-56 rounded-xl border bg-white/5 px-3.5 py-3 backdrop-blur-xl transition-shadow"
       style={{
         borderColor: `${config.color}59`,
         boxShadow: selected
