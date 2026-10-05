@@ -96,3 +96,25 @@ create policy "templates_anon_select"
 
 create policy "templates_anon_update"
   on public.templates for update using (true);
+
+-- ============================================
+-- AI 助手聊天记录表
+-- ============================================
+create table if not exists public.chat_logs (
+  id uuid primary key default gen_random_uuid(),
+  session_id text not null,
+  role text not null,                     -- user | assistant
+  content text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists chat_logs_session_id_idx
+  on public.chat_logs (session_id, created_at);
+
+alter table public.chat_logs enable row level security;
+
+create policy "chat_logs_anon_select"
+  on public.chat_logs for select using (true);
+
+create policy "chat_logs_anon_insert"
+  on public.chat_logs for insert with check (true);

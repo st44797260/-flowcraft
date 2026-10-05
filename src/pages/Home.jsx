@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Sparkles } from 'lucide-react'
+import Dashboard from '../components/Dashboard'
 import GenerationOverlay from '../components/GenerationOverlay'
 import WorkflowCard from '../components/WorkflowCard'
 import { generateWorkflow } from '../lib/ai'
@@ -102,6 +103,9 @@ export default function Home() {
           {error && <p className="mt-3 text-sm text-danger">{error}</p>}
         </div>
       </section>
+
+      {/* 数据看板 */}
+      <Dashboard />
 
       {/* 工作流列表 */}
       <section>

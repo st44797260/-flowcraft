@@ -103,6 +103,48 @@
   animation-duration: 0.25s;
 }
 
+/* ===== 全局 AI 助手 ===== */
+
+/* 悬浮按钮脉冲光晕：青色与品牌紫交替呼吸 */
+@keyframes assistant-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 6px rgba(0, 212, 255, 0.15),
+      0 0 24px rgba(0, 212, 255, 0.45);
+  }
+  50% {
+    box-shadow:
+      0 0 0 10px rgba(124, 58, 237, 0.12),
+      0 0 40px rgba(0, 212, 255, 0.7);
+  }
+}
+
+.assistant-fab {
+  animation: assistant-pulse 2s ease-in-out infinite;
+}
+
+/* 打字机光标 */
+@keyframes typing-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.typing-cursor {
+  display: inline-block;
+  width: 6px;
+  height: 14px;
+  margin-left: 2px;
+  vertical-align: -2px;
+  background: #00d4ff;
+  animation: typing-blink 0.8s step-end infinite;
+}
+
 /* 底部版权标识弱化，融入深色主题 */
 .react-flow__attribution {
   background: transparent;

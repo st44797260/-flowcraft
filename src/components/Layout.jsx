@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import AIAssistant from './AIAssistant'
 import { cn } from '../lib/utils'
 
 const NAV_LINKS = [
@@ -29,6 +30,8 @@ export default function Layout({ children }) {
   const [scrolled, setScrolled] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
+  // 编辑器页面有自己的 AI 面板，且右下角是 MiniMap，隐藏全局悬浮助手
+  const isEditorPage = location.pathname.startsWith('/workflow')
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
@@ -101,6 +104,9 @@ export default function Layout({ children }) {
           {children}
         </motion.div>
       </main>
+
+      {/* 全局 AI 助手（编辑器页除外） */}
+      {!isEditorPage && <AIAssistant />}
     </div>
   )
 }
