@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+/* ============================================
+   FlowCraft 深色主题设计系统（Tailwind v4）
+   通过 @theme 定义的变量会自动生成对应的
+   Tailwind 工具类，例如：
+   --color-background → bg-background / text-background
+   --color-primary    → bg-primary / from-primary
+   --color-surface-raised → bg-surface-raised
+   ============================================ */
+@theme {
+  /* 背景与表面（两层卡片背景） */
+  --color-background: #0a0e1a;
+  --color-surface: #111827;
+  --color-surface-raised: #1a2235;
+
+  /* 强调色 */
+  --color-primary: #00d4ff; /* 电光青 */
+  --color-secondary: #7c3aed; /* 紫色 */
+
+  /* 语义色 */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+
+  /* 文字 */
+  --color-foreground: #f9fafb; /* 文字主色 */
+  --color-muted: #9ca3af; /* 次要文字 */
+
+  /* 全局字体：Inter（中文回退到系统字体） */
+  --font-sans:
+    'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans SC',
+    'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+}
+
+@layer components {
+  /* 标准卡片：半透明背景 + 毛玻璃 + 细边框 + 大圆角 */
+  .card {
+    @apply rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl;
+  }
+}
