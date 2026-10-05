@@ -19,3 +19,21 @@ export function formatRelativeTime(iso) {
   return new Date(iso).toLocaleDateString()
 }
 
+/** 时长："800 ms" / "3.2 秒" / "1 分 4 秒" */
+export function formatDuration(ms) {
+  if (ms == null) return '—'
+  if (ms < 1000) return `${Math.round(ms)} ms`
+  const seconds = ms / 1000
+  if (seconds < 60) return `${seconds.toFixed(1)} 秒`
+  return `${Math.floor(seconds / 60)} 分 ${Math.round(seconds % 60)} 秒`
+}
+
+/** 本地时间："10月5日 21:36" */
+export function formatDateTime(iso) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mm = String(d.getMinutes()).padStart(2, '0')
+  return `${d.getMonth() + 1}月${d.getDate()}日 ${hh}:${mm}`
+}
+

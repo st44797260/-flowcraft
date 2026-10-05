@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react'
 import { Handle, Position, useReactFlow } from '@xyflow/react'
+import { CheckCircle2, Loader2, XCircle } from 'lucide-react'
+import { cn } from '../../lib/utils'
 
 const STATUS_STYLES = {
   idle: { dot: 'bg-muted', text: 'text-muted', label: '空闲' },
@@ -47,7 +49,10 @@ export default function BaseNode({ id, data, selected, config }) {
 
   return (
     <div
-      className="relative w-56 rounded-xl border bg-white/5 px-3.5 py-3 backdrop-blur-xl transition-shadow"
+      className={cn(
+        'relative w-56 rounded-xl border bg-white/5 px-3.5 py-3 backdrop-blur-xl transition-shadow',
+        data.status === 'running' && 'node-status-running',
+      )}
       style={{
         borderColor: `${config.color}59`,
         boxShadow: selected
@@ -57,6 +62,17 @@ export default function BaseNode({ id, data, selected, config }) {
     >
       <Handle type="target" position={Position.Left} style={handleStyle(config.color, false)} />
       <Handle type="source" position={Position.Right} style={handleStyle(config.color, true)} />
+
+      {/* 右上角执行结果徽标 */}
+      {data.status === 'running' && (
+        <Loader2 className="absolute -right-2 -top-2 h-5 w-5 animate-spin rounded-full bg-background text-primary" />
+      )}
+      {data.status === 'success' && (
+        <CheckCircle2 className="absolute -right-2 -top-2 h-5 w-5 rounded-full bg-background text-success" />
+      )}
+      {data.status === 'error' && (
+        <XCircle className="absolute -right-2 -top-2 h-5 w-5 rounded-full bg-background text-danger" />
+      )}
 
       {/* 顶部：图标 + 类型标签 */}
       <div className="flex items-center gap-2">

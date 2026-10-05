@@ -77,6 +77,32 @@
   animation: edge-dash-flow 0.6s linear infinite;
 }
 
+/* ===== 工作流执行状态动画 ===== */
+
+/* 正在执行的节点：边框发光并脉冲（动画优先级高于内联 boxShadow） */
+@keyframes node-running-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px rgba(0, 212, 255, 0.9),
+      0 0 22px rgba(0, 212, 255, 0.45);
+  }
+  50% {
+    box-shadow:
+      0 0 0 4px rgba(0, 212, 255, 0.45),
+      0 0 44px rgba(0, 212, 255, 0.8);
+  }
+}
+
+.node-status-running {
+  animation: node-running-pulse 1.2s ease-in-out infinite;
+}
+
+/* 执行期间：连线流动动画加速 */
+.execution-active .edge-flow-dash {
+  animation-duration: 0.25s;
+}
+
 /* 底部版权标识弱化，融入深色主题 */
 .react-flow__attribution {
   background: transparent;

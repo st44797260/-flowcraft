@@ -13,8 +13,10 @@ import {
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import {
+  Loader2,
   Maximize2,
   Pencil,
+  Play,
   Plus,
   RotateCcw,
   Save,
@@ -25,11 +27,14 @@ import {
 } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import AIPanel from '../components/AIPanel'
+import ExecutionLogPanel from '../components/ExecutionLogs'
 import FlowEdge from '../components/FlowEdge'
 import { NODE_TYPES, NODE_TYPE_LIST, NODE_TYPE_MAP } from '../components/nodes'
 import { NODE_HEIGHT, NODE_WIDTH, layoutGraph } from '../lib/layout'
 import { updateWorkflowViaChat } from '../lib/ai'
+import { runWorkflow } from '../lib/executor'
 import { createWorkflow, getWorkflow, updateWorkflow } from '../lib/workflows'
+import { cn } from '../lib/utils'
 
 const edgeTypes = { flow: FlowEdge }
 
@@ -103,6 +108,11 @@ function EditorInner() {
     },
   ])
   const [chatBusy, setChatBusy] = useState(false)
+  const [running, setRunning] = useState(false)
+  const [logOpen, setLogOpen] = useState(false)
+  const [logEntries, setLogEntries] = useState([])
+  const [lastResult, setLastResult] = useState(null)
+  const [simulateError, setSimulateError] = useState(false)
   const saveTimer = useRef(null)
 
   /** 把原始 nodes/edges 规范化为画布可用的形态并整体替换 */
@@ -229,6 +239,63 @@ function EditorInner() {
 
   const resetView = () => setViewport({ x: 0, y: 0, zoom: 1 }, { duration: 300 })
 
+  // 执行工作流：未保存先保存；resumeFrom 非空时从失败节点继续（重试不再注入故障）
+  const handleRun = async (resumeFrom = null) => {
+    if (running) return
+    let wf = record
+    try {
+      if (!wf) {
+        wf = await createWorkflow({
+          name: workflowName,
+          description: '',
+          nodes,
+          edges,
+          status: 'draft',
+        })
+        setRecord(wf)
+        navigate(`/workflow/${wf.id}`, { replace: true })
+      }
+    } catch (e) {
+      console.error('[FlowCraft] 执行前保存失败', e)
+      return
+    }
+
+    setLogOpen(true)
+    setRunning(true)
+    setLastResult(null)
+    setLogEntries([])
+
+    // 重置画布节点状态：全新执行全部归位，重试只重置失败节点
+    setNodes((nds) =>
+      nds.map((n) => ({
+        ...n,
+        data: { ...n.data, status: resumeFrom ? (n.id === resumeFrom ? 'idle' : n.data.status) : 'idle' },
+      })),
+    )
+
+    await runWorkflow({
+      workflowId: wf.id,
+      nodes,
+      edges,
+      startNodeId: resumeFrom,
+      injectFault: !resumeFrom && simulateError,
+      onEvent: (event) => {
+        if (event.type === 'node-status') {
+          setNodes((nds) =>
+            nds.map((n) =>
+              n.id === event.nodeId ? { ...n, data: { ...n.data, status: event.status } } : n,
+            ),
+          )
+        } else if (event.type === 'logs') {
+          setLogEntries(event.logs)
+        } else if (event.type === 'done') {
+          setLastResult({ status: event.status, failedNodeId: event.failedNodeId })
+        }
+      },
+    })
+    setRunning(false)
+  }
+
   // AI 对话：解析指令 → 更新画布 → 自动保存
   const handleChatSend = async (text) => {
     setMessages((m) => [...m, { role: 'user', content: text }])
@@ -292,7 +359,7 @@ function EditorInner() {
 
       {/* 画布 + AI 面板 */}
       <div className="relative flex min-h-0 flex-1">
-        <div className="relative min-w-0 flex-1">
+        <div className={cn('relative min-w-0 flex-1', running && 'execution-active')}>
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -325,6 +392,20 @@ function EditorInner() {
             <Panel position="top-left">
               <div className="card flex flex-col gap-2 p-2">
                 <div className="relative flex items-center gap-1.5">
+                  {/* 运行按钮：绿色渐变，执行中显示旋转动画 */}
+                  <button
+                    type="button"
+                    onClick={() => handleRun()}
+                    disabled={running || loading || nodes.length === 0}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-success to-emerald-600 px-3.5 py-1.5 text-xs font-semibold text-background shadow-lg shadow-success/25 transition hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {running ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Play className="h-3.5 w-3.5" />
+                    )}
+                    {running ? '运行中...' : '运行'}
+                  </button>
                   <button
                     type="button"
                     className={toolbarBtn}
@@ -417,6 +498,18 @@ function EditorInner() {
               <p className="text-sm text-muted">加载工作流中…</p>
             </div>
           )}
+
+          {/* 底部可展开的执行日志面板 */}
+          <ExecutionLogPanel
+            open={logOpen}
+            entries={logEntries}
+            running={running}
+            lastResult={lastResult?.status ?? null}
+            simulateError={simulateError}
+            onSimulateErrorToggle={setSimulateError}
+            onToggle={() => setLogOpen((open) => !open)}
+            onRetry={() => handleRun(lastResult?.failedNodeId ?? null)}
+          />
 
           {/* 折叠状态下显示 AI 助手入口 */}
           {!panelOpen && !loading && (

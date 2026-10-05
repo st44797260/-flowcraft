@@ -43,3 +43,34 @@ create policy "workflows_anon_update"
 
 create policy "workflows_anon_delete"
   on public.workflows for delete using (true);
+
+-- ============================================
+-- 执行记录表
+-- ============================================
+create table if not exists public.executions (
+  id uuid primary key default gen_random_uuid(),
+  workflow_id uuid not null references public.workflows(id) on delete cascade,
+  status text not null default 'running',  -- running | success | error
+  started_at timestamptz not null default now(),
+  finished_at timestamptz,
+  logs jsonb not null default '[]'::jsonb,
+  result text,
+  error text
+);
+
+create index if not exists executions_workflow_id_idx
+  on public.executions (workflow_id);
+
+alter table public.executions enable row level security;
+
+create policy "executions_anon_select"
+  on public.executions for select using (true);
+
+create policy "executions_anon_insert"
+  on public.executions for insert with check (true);
+
+create policy "executions_anon_update"
+  on public.executions for update using (true);
+
+create policy "executions_anon_delete"
+  on public.executions for delete using (true);
