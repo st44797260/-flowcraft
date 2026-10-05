@@ -74,3 +74,25 @@ create policy "executions_anon_update"
 
 create policy "executions_anon_delete"
   on public.executions for delete using (true);
+
+-- ============================================
+-- 模板表（可选：未建表时前端使用内置模板目录）
+-- ============================================
+create table if not exists public.templates (
+  id text primary key,                     -- 与前端内置模板 id 对应
+  name text not null,
+  description text,
+  category text not null,
+  nodes jsonb not null default '[]'::jsonb,
+  edges jsonb not null default '[]'::jsonb,
+  usage_count integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+alter table public.templates enable row level security;
+
+create policy "templates_anon_select"
+  on public.templates for select using (true);
+
+create policy "templates_anon_update"
+  on public.templates for update using (true);
