@@ -145,6 +145,48 @@
   animation: typing-blink 0.8s step-end infinite;
 }
 
+/* ===== 首页 Hero 动态光晕 ===== */
+
+@keyframes hero-blob-a {
+  0%,
+  100% {
+    transform: translate(-8%, -8%) scale(1);
+  }
+  50% {
+    transform: translate(35%, 12%) scale(1.18);
+  }
+}
+
+@keyframes hero-blob-b {
+  0%,
+  100% {
+    transform: translate(12%, 10%) scale(1.12);
+  }
+  50% {
+    transform: translate(-28%, -6%) scale(0.94);
+  }
+}
+
+.hero-blob-a {
+  animation: hero-blob-a 13s ease-in-out infinite;
+}
+
+.hero-blob-b {
+  animation: hero-blob-b 16s ease-in-out infinite;
+}
+
+/* ===== 卡片图标微浮动（hover 触发） ===== */
+
+@keyframes icon-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
 /* 底部版权标识弱化，融入深色主题 */
 .react-flow__attribution {
   background: transparent;

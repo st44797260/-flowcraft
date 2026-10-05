@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { Menu, X } from 'lucide-react'
 import AIAssistant from './AIAssistant'
 import { cn } from '../lib/utils'
 
@@ -28,6 +28,7 @@ function PlusIcon({ className }) {
 
 export default function Layout({ children }) {
   const [scrolled, setScrolled] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
   // 编辑器页面有自己的 AI 面板，且右下角是 MiniMap，隐藏全局悬浮助手
@@ -40,13 +41,16 @@ export default function Layout({ children }) {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  // 路由变化时收起移动端菜单（菜单内链接点击时也会收起）
+  // 注意：不在 effect 里同步 setState，改由链接点击触发
+
   return (
     <div className="min-h-screen bg-background">
       {/* 顶部导航栏：固定 + 毛玻璃，滚动后加阴影 */}
       <header
         className={cn(
           'fixed inset-x-0 top-0 z-50 border-b backdrop-blur-xl transition-all duration-300',
-          scrolled
+          scrolled || mobileOpen
             ? 'border-white/10 bg-background/80 shadow-lg shadow-black/30'
             : 'border-transparent bg-background/60',
         )}
@@ -60,7 +64,7 @@ export default function Layout({ children }) {
             <span className="text-lg font-bold tracking-tight">FlowCraft</span>
           </NavLink>
 
-          {/* 中间导航链接 */}
+          {/* 中间导航链接（平板/桌面） */}
           <div className="hidden items-center gap-1 md:flex">
             {NAV_LINKS.map(({ to, label, end }) => (
               <NavLink
@@ -69,7 +73,7 @@ export default function Layout({ children }) {
                 end={end}
                 className={({ isActive }) =>
                   cn(
-                    'rounded-lg px-4 py-2 text-sm font-medium transition-colors',
+                    'rounded-lg px-4 py-2 text-sm font-medium transition-colors active:scale-95',
                     isActive
                       ? 'bg-white/10 text-primary'
                       : 'text-muted hover:bg-white/5 hover:text-foreground',
@@ -81,28 +85,55 @@ export default function Layout({ children }) {
             ))}
           </div>
 
-          {/* 右侧新建工作流按钮：青色渐变 */}
-          <button
-            type="button"
-            onClick={() => navigate('/workflow/new')}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-primary to-cyan-600 px-4 py-2 text-sm font-semibold text-background shadow-lg shadow-primary/25 transition hover:brightness-110 active:scale-95"
-          >
-            <PlusIcon className="h-4 w-4" />
-            新建工作流
-          </button>
+          <div className="flex items-center gap-2">
+            {/* 右侧新建工作流按钮：青色渐变 */}
+            <button
+              type="button"
+              onClick={() => navigate('/workflow/new')}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-primary to-cyan-600 px-3 py-2 text-sm font-semibold text-background shadow-lg shadow-primary/25 transition hover:brightness-110 active:scale-95 sm:px-4"
+            >
+              <PlusIcon className="h-4 w-4" />
+              <span className="hidden sm:inline">新建工作流</span>
+            </button>
+
+            {/* 移动端汉堡菜单 */}
+            <button
+              type="button"
+              onClick={() => setMobileOpen((open) => !open)}
+              title={mobileOpen ? '关闭菜单' : '打开菜单'}
+              className="rounded-lg p-2 text-foreground transition hover:bg-white/10 active:scale-95 md:hidden"
+            >
+              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
         </nav>
+
+        {/* 移动端菜单面板 */}
+        {mobileOpen && (
+          <div className="border-t border-white/10 px-4 pb-4 pt-2 md:hidden">
+            {NAV_LINKS.map(({ to, label, end }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                onClick={() => setMobileOpen(false)}
+                className={({ isActive }) =>
+                  cn(
+                    'mt-1 block rounded-lg px-4 py-2.5 text-sm font-medium transition-colors',
+                    isActive ? 'bg-white/10 text-primary' : 'text-muted hover:bg-white/5 hover:text-foreground',
+                  )
+                }
+              >
+                {label}
+              </NavLink>
+            ))}
+          </div>
+        )}
       </header>
 
-      {/* 页面主体：限宽居中 + 四周留白（顶部为固定导航栏让出高度），路由切换时淡入 */}
+      {/* 页面主体：限宽居中 + 四周留白（顶部为固定导航栏让出高度），过渡动画由 PageTransition 承担 */}
       <main className="mx-auto w-full max-w-7xl px-4 pt-24 pb-16 sm:px-6 lg:px-8">
-        <motion.div
-          key={location.pathname}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25, ease: 'easeOut' }}
-        >
-          {children}
-        </motion.div>
+        {children}
       </main>
 
       {/* 全局 AI 助手（编辑器页除外） */}

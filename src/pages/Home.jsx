@@ -1,11 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Sparkles } from 'lucide-react'
 import Dashboard from '../components/Dashboard'
+import EmptyState from '../components/EmptyState'
+import FadeIn from '../components/FadeIn'
 import GenerationOverlay from '../components/GenerationOverlay'
+import Skeleton from '../components/Skeleton'
+import TypingCarousel from '../components/TypingCarousel'
 import WorkflowCard from '../components/WorkflowCard'
 import { generateWorkflow } from '../lib/ai'
 import { createWorkflow, dataMode, listWorkflows } from '../lib/workflows'
+
+const HERO_PHRASES = [
+  '用自然语言编排AI工作流',
+  '让重复工作自动消失',
+  '72小时上线你的第一个自动化',
+]
 
 const EXAMPLES = [
   '每天抓取行业新闻，AI筛选后生成摘要发我邮箱',
@@ -16,6 +25,7 @@ const EXAMPLES = [
 
 export default function Home() {
   const navigate = useNavigate()
+  const inputRef = useRef(null)
   const [input, setInput] = useState('')
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState('')
@@ -55,27 +65,30 @@ export default function Home() {
 
   return (
     <div className="space-y-10">
-      {/* AI 创建工作流输入区 */}
-      <section className="card relative overflow-hidden p-6 sm:p-8">
-        <div className="pointer-events-none absolute -top-24 left-1/2 h-48 w-96 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
+      {/* Hero：AI 创建工作流输入区 */}
+      <section className="card relative overflow-hidden p-6 sm:p-10">
+        {/* 动态渐变光晕：青色与紫色缓慢移动 */}
+        <div className="hero-blob-a pointer-events-none absolute -top-32 -left-24 h-72 w-72 rounded-full bg-primary/15 blur-3xl" />
+        <div className="hero-blob-b pointer-events-none absolute -right-20 -bottom-32 h-72 w-72 rounded-full bg-secondary/15 blur-3xl" />
+
         <div className="relative">
-          <h1 className="flex items-center gap-2 text-2xl font-bold">
-            <Sparkles className="h-6 w-6 text-primary" />
-            AI 创建工作流
+          <h1 className="min-h-12 bg-gradient-to-r from-primary via-cyan-300 to-secondary bg-clip-text text-3xl font-bold text-transparent sm:min-h-14 sm:text-4xl">
+            <TypingCarousel phrases={HERO_PHRASES} />
           </h1>
-          <p className="mt-1.5 text-sm text-muted">
-            用一句话描述需求，AI 自动生成节点和连线（演示模式：返回预设工作流）
+          <p className="mt-3 text-sm text-muted">
+            FlowCraft —— 连接抓取、AI 处理与消息触达的轻量自动化平台，从一句话到可运行的工作流。
           </p>
 
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <input
+              ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleGenerate()
               }}
               placeholder="用一句话描述你想自动化的事情，比如：每周一早上抓取竞品定价页面，有变化就总结发我邮箱"
-              className="w-full flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-foreground outline-none backdrop-blur-xl placeholder:text-muted/70 focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
+              className="w-full flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-foreground outline-none backdrop-blur-xl transition placeholder:text-muted/70 focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
             />
             <button
               type="button"
@@ -93,7 +106,7 @@ export default function Home() {
                 key={text}
                 type="button"
                 onClick={() => setInput(text)}
-                className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-muted transition hover:border-primary/40 hover:text-primary"
+                className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-muted transition hover:border-primary/40 hover:text-primary active:scale-95"
               >
                 {text}
               </button>
@@ -105,29 +118,43 @@ export default function Home() {
       </section>
 
       {/* 数据看板 */}
-      <Dashboard />
+      <FadeIn>
+        <Dashboard />
+      </FadeIn>
 
       {/* 工作流列表 */}
       <section>
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold">工作流列表</h2>
-          <span className="text-xs text-muted">
-            {dataMode === 'supabase' ? '已连接 Supabase' : '演示模式：数据保存在浏览器本地'}
-          </span>
-        </div>
+        <FadeIn>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-bold">工作流列表</h2>
+            <span className="text-xs text-muted">
+              {dataMode === 'supabase' ? '已连接 Supabase' : '演示模式：数据保存在浏览器本地'}
+            </span>
+          </div>
+        </FadeIn>
 
         {loading ? (
-          <p className="text-sm text-muted">加载中…</p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <Skeleton className="h-40" />
+            <Skeleton className="h-40" />
+            <Skeleton className="h-40" />
+          </div>
         ) : listError ? (
           <p className="text-sm text-danger">读取失败：{listError}</p>
         ) : workflows.length === 0 ? (
-          <div className="card px-6 py-14 text-center">
-            <p className="text-sm text-muted">还没有工作流，用上方 AI 输入框创建第一个吧</p>
-          </div>
+          <EmptyState
+            title="还没有工作流"
+            description="用上方 AI 输入框描述你的需求，自动生成第一个工作流；或者到模板市场挑一个现成的。"
+            actionLabel="创建第一个工作流"
+            onAction={() => {
+              inputRef.current?.focus()
+              inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            }}
+          />
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {workflows.map((wf) => (
-              <WorkflowCard key={wf.id} workflow={wf} />
+            {workflows.map((wf, i) => (
+              <WorkflowCard key={wf.id} workflow={wf} index={i} />
             ))}
           </div>
         )}

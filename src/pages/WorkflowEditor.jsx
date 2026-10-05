@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Background,
   BackgroundVariant,
@@ -88,6 +88,11 @@ const iconBtn =
 function EditorInner() {
   const { id } = useParams()
   const navigate = useNavigate()
+  // 触屏设备：单指拖拽即平移画布（桌面保持中键/右键/空格+左键）
+  const isTouchDevice = useMemo(
+    () => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches,
+    [],
+  )
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
   const { screenToFlowPosition, zoomIn, zoomOut, fitView, setViewport } = useReactFlow()
@@ -374,8 +379,8 @@ function EditorInner() {
             defaultEdgeOptions={{ type: 'flow' }}
             connectionLineStyle={{ stroke: '#00D4FF', strokeWidth: 2 }}
             onPaneClick={() => setMenuOpen(false)}
-            /* 平移：中键/右键拖拽，或按住空格+左键拖拽 */
-            panOnDrag={[1, 2]}
+            /* 平移：桌面为中键/右键拖拽或空格+左键；触屏设备单指拖拽平移 */
+            panOnDrag={isTouchDevice ? true : [1, 2]}
             panActivationKeyCode="Space"
             /* 选中元素可用 Backspace 或 Delete 删除 */
             deleteKeyCode={['Backspace', 'Delete']}
@@ -391,7 +396,7 @@ function EditorInner() {
             {/* 左上角：工具栏 + 缩放控制 */}
             <Panel position="top-left">
               <div className="card flex flex-col gap-2 p-2">
-                <div className="relative flex items-center gap-1.5">
+                <div className="relative flex flex-wrap items-center gap-1.5">
                   {/* 运行按钮：绿色渐变，执行中显示旋转动画 */}
                   <button
                     type="button"

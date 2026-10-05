@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Eye, Loader2, RotateCcw } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import EmptyState from '../components/EmptyState'
 import { LogEntryBubble } from '../components/ExecutionLogs'
+import Skeleton from '../components/Skeleton'
 import { runWorkflow } from '../lib/executor'
 import { getWorkflow, listWorkflows } from '../lib/workflows'
 import { listExecutions, subscribeExecutions } from '../lib/executions'
@@ -25,6 +28,7 @@ function durationOf(execution) {
 }
 
 export default function Executions() {
+  const navigate = useNavigate()
   const [executions, setExecutions] = useState([])
   const [workflowNames, setWorkflowNames] = useState({})
   const [filter, setFilter] = useState('all')
@@ -112,11 +116,18 @@ export default function Executions() {
 
       <div className="card overflow-hidden">
         {loading ? (
-          <p className="p-8 text-center text-sm text-muted">加载中…</p>
+          <div className="space-y-3 p-5">
+            {[0, 1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-12" />
+            ))}
+          </div>
         ) : visible.length === 0 ? (
-          <p className="p-10 text-center text-sm text-muted">
-            暂无执行记录，到编辑器里点"运行"试试
-          </p>
+          <EmptyState
+            title="暂无执行记录"
+            description={'到编辑器里点「运行」，每个节点的执行过程和结果都会记录在这里。'}
+            actionLabel="去运行第一个工作流"
+            onAction={() => navigate('/')}
+          />
         ) : (
           <table className="w-full text-sm">
             <thead>

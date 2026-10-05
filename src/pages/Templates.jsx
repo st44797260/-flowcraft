@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ChevronRight, Loader2, Search, Users } from 'lucide-react'
+import EmptyState from '../components/EmptyState'
+import Skeleton from '../components/Skeleton'
 import { NODE_TYPE_MAP } from '../components/nodes'
 import { TEMPLATE_CATEGORIES, applyTemplate, listTemplates } from '../lib/templates'
 import { cn } from '../lib/utils'
@@ -16,7 +18,7 @@ const CATEGORY_COLORS = {
 
 const FILTERS = ['全部', ...TEMPLATE_CATEGORIES]
 
-function TemplateCard({ template, busy, onUse }) {
+function TemplateCard({ template, busy, index = 0, onUse }) {
   const categoryCls = CATEGORY_COLORS[template.category] ?? CATEGORY_COLORS['运营']
 
   return (
@@ -24,7 +26,10 @@ function TemplateCard({ template, busy, onUse }) {
       type="button"
       onClick={() => onUse(template)}
       whileHover={{ y: -4 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.45, delay: index * 0.05, ease: 'easeOut' }}
       className="card group relative flex w-full flex-col p-5 text-left transition-shadow hover:shadow-[0_0_28px_rgba(0,212,255,0.18)]"
     >
       {/* 分类标签 + 使用次数 */}
@@ -46,7 +51,7 @@ function TemplateCard({ template, busy, onUse }) {
       <h3 className="mt-3 text-base font-bold text-foreground">{template.name}</h3>
       <p className="mt-1.5 line-clamp-2 min-h-10 text-sm text-muted">{template.description}</p>
 
-      {/* 节点类型图标序列 */}
+      {/* 节点类型图标序列：hover 时微浮动 */}
       <div className="mt-4 flex items-center gap-1">
         {template.nodes.map((node, i) => {
           const cfg = NODE_TYPE_MAP[node.type]
@@ -56,8 +61,12 @@ function TemplateCard({ template, busy, onUse }) {
             <span key={node.id} className="flex items-center gap-1">
               {i > 0 && <ChevronRight className="h-3 w-3 text-muted/60" />}
               <span
-                className="flex h-6 w-6 items-center justify-center rounded-md"
-                style={{ background: `${cfg.color}1A`, color: cfg.color }}
+                className="flex h-6 w-6 items-center justify-center rounded-md group-hover:animate-[icon-float_1.8s_ease-in-out_infinite]"
+                style={{
+                  background: `${cfg.color}1A`,
+                  color: cfg.color,
+                  animationDelay: `${i * 120}ms`,
+                }}
                 title={node.data?.name}
               >
                 <Icon className="h-3.5 w-3.5" />
@@ -161,17 +170,23 @@ export default function Templates() {
 
       {/* 模板网格 */}
       {loading ? (
-        <p className="text-sm text-muted">加载中…</p>
-      ) : visible.length === 0 ? (
-        <div className="card px-6 py-14 text-center">
-          <p className="text-sm text-muted">没有匹配的模板，换个关键词试试</p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+            <Skeleton key={i} className="h-52" />
+          ))}
         </div>
+      ) : visible.length === 0 ? (
+        <EmptyState
+          title="没有匹配的模板"
+          description="换个关键词，或清除筛选条件再试试。"
+        />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {visible.map((template) => (
+          {visible.map((template, i) => (
             <TemplateCard
               key={template.id}
               template={template}
+              index={i}
               busy={usingId === template.id}
               onUse={handleUse}
             />
