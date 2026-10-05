@@ -42,6 +42,17 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    font-weight: 400; /* 正文常规 */
+  }
+
+  /* 标题加粗 */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 700;
   }
 }
 
@@ -50,4 +61,27 @@
   .card {
     @apply rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl;
   }
+}
+
+/* ===== React Flow 画布适配 ===== */
+
+/* 连线流动动画：虚线沿路径从起点流向终点 */
+@keyframes edge-dash-flow {
+  to {
+    stroke-dashoffset: -14;
+  }
+}
+
+.edge-flow-dash {
+  stroke-dasharray: 5 9;
+  animation: edge-dash-flow 0.6s linear infinite;
+}
+
+/* 底部版权标识弱化，融入深色主题 */
+.react-flow__attribution {
+  background: transparent;
+}
+
+.react-flow__attribution a {
+  color: rgba(255, 255, 255, 0.25);
 }

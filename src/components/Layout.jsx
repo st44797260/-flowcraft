@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import { cn } from '../lib/utils'
 
 const NAV_LINKS = [
   { to: '/', label: '工作流', end: true },
@@ -26,6 +28,7 @@ function PlusIcon({ className }) {
 export default function Layout({ children }) {
   const [scrolled, setScrolled] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
@@ -38,17 +41,18 @@ export default function Layout({ children }) {
     <div className="min-h-screen bg-background">
       {/* 顶部导航栏：固定 + 毛玻璃，滚动后加阴影 */}
       <header
-        className={`fixed inset-x-0 top-0 z-50 border-b backdrop-blur-xl transition-all duration-300 ${
+        className={cn(
+          'fixed inset-x-0 top-0 z-50 border-b backdrop-blur-xl transition-all duration-300',
           scrolled
             ? 'border-white/10 bg-background/80 shadow-lg shadow-black/30'
-            : 'border-transparent bg-background/60'
-        }`}
+            : 'border-transparent bg-background/60',
+        )}
       >
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          {/* 左侧 Logo */}
+          {/* 左侧 Logo：发光的闪电图标 + FlowCraft */}
           <NavLink to="/" className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-secondary text-white shadow-lg shadow-primary/20">
-              <BoltIcon className="h-4.5 w-4.5" />
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-secondary text-white shadow-[0_0_18px_rgba(0,212,255,0.55)]">
+              <BoltIcon className="h-4.5 w-4.5 drop-shadow-[0_0_5px_rgba(255,255,255,0.9)]" />
             </span>
             <span className="text-lg font-bold tracking-tight">FlowCraft</span>
           </NavLink>
@@ -61,11 +65,12 @@ export default function Layout({ children }) {
                 to={to}
                 end={end}
                 className={({ isActive }) =>
-                  `rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                  cn(
+                    'rounded-lg px-4 py-2 text-sm font-medium transition-colors',
                     isActive
                       ? 'bg-white/10 text-primary'
-                      : 'text-muted hover:bg-white/5 hover:text-foreground'
-                  }`
+                      : 'text-muted hover:bg-white/5 hover:text-foreground',
+                  )
                 }
               >
                 {label}
@@ -85,9 +90,16 @@ export default function Layout({ children }) {
         </nav>
       </header>
 
-      {/* 页面主体：限宽居中 + 四周留白（顶部为固定导航栏让出高度） */}
+      {/* 页面主体：限宽居中 + 四周留白（顶部为固定导航栏让出高度），路由切换时淡入 */}
       <main className="mx-auto w-full max-w-7xl px-4 pt-24 pb-16 sm:px-6 lg:px-8">
-        {children}
+        <motion.div
+          key={location.pathname}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, ease: 'easeOut' }}
+        >
+          {children}
+        </motion.div>
       </main>
     </div>
   )
